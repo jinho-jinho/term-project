@@ -10,10 +10,10 @@ package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
-# 환경변수 / 비밀키
-.env
-.env.*
-!.env.example   # 예시용 env만 허용
+# # 환경변수 / 비밀키
+# .env
+# .env.*
+# !.env.example   # 예시용 env만 허용
 
 # 로그 파일
 logs/
