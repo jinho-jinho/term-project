@@ -1,0 +1,28 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@500;600&family=Noto+Sans+KR:wght@400;500;600;700&display=swap");
+
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  font-family: "Noto Sans KR", "Inter", "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #0f1012;
+  background-color: #f5f6f7;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+}
