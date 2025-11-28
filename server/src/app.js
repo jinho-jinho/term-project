@@ -2,6 +2,8 @@ import express from "express";
 import session from "express-session";
 import MongoStore from "connect-mongo";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import "./config/db.js";
 import productRoutes from "./routes/productRoutes.js";
@@ -10,9 +12,14 @@ import authRoutes from "./routes/authRoutes.js";
 dotenv.config();
 
 const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// static assets (e.g., /img/... from seed data)
+app.use("/img", express.static(path.join(__dirname, "../public/img")));
 
 app.use(
   session({
