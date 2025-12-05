@@ -16,7 +16,7 @@
   min-height: calc(100vh - 70px);
   background: var(--bg);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 48px 16px 64px;
 }

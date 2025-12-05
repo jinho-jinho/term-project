@@ -7,7 +7,11 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:5000", // Express 서버 주소
+        target: "http://localhost:5000",
+        changeOrigin: true,
+      },
+      "/img": {
+        target: "http://localhost:5000",
         changeOrigin: true,
       },
     },
