@@ -8,6 +8,9 @@ import { fileURLToPath } from "url";
 import "./config/db.js";
 import productRoutes from "./routes/productRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
+import meRoutes from "./routes/meRoutes.js";
 
 dotenv.config();
 
@@ -39,5 +42,8 @@ app.use(
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/me", meRoutes);
 
 export default app;
