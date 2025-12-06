@@ -167,7 +167,6 @@
   font-size: 14px;
 }
 
-
 .gender-row {
   flex-direction: row;
   gap: 8px;
@@ -226,9 +225,12 @@
 .size-btn.unavailable::after {
   content: "";
   position: absolute;
-  inset: 4px;
-  border-top: 1px solid #cfcfcf;
-  transform: skewY(-12deg);
+  top: 20px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #cfcfcf;
+  transform: skewY(-30deg);
 }
 
 .fit-guide {
@@ -301,52 +303,79 @@
 
 .reviews-panel {
   width: min(1200px, 100%);
-  background: #ffffff;
-  border-radius: 0;
-  padding: 16px 18px 22px;
+  background: #f5f6f7;
+  border: none;
+  padding: 24px 40px 28px;
   box-shadow: none;
-  border: 1px solid #e0e0e0;
   align-self: center;
 }
 
 .reviews-header {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  padding-bottom: 10px;
+}
+
+.reviews-header-line {
+  display: flex;
+  align-items: center;
   gap: 12px;
-  border-bottom: 1px solid #ededed;
-  padding-bottom: 12px;
 }
 
-.rating-stars-large {
-  font-size: 18px;
-  letter-spacing: 6px;
+.overall-score {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.overall-stars {
   color: #f6a609;
+  letter-spacing: 4px;
+  font-size: 20px;
 }
 
-.rating-count {
+.overall-count {
   color: #5a5a5a;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .review-list {
-  margin-top: 16px;
-  display: grid;
-  gap: 12px;
-}
-
-.review-card {
-  border: 1px solid #eeeeee;
-  border-radius: 12px;
-  padding: 12px 14px;
-  background: #fafafa;
-}
-
-.review-meta {
+  margin-top: 18px;
   display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 0 16px 8px;
+}
+
+.review-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  padding: 10px 0;
+}
+
+.review-left {
+  color: #444;
+  font-size: 14px;
+}
+
+.review-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.review-head {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  margin-bottom: 6px;
 }
 
 .review-stars {
@@ -355,15 +384,20 @@
   font-weight: 700;
 }
 
-.review-user {
-  color: #666;
-  font-size: 13px;
+.review-title-inline {
+  font-weight: 500;
+  color: #333;
+}
+
+.review-date {
+  color: #333;
+  margin-left: auto;
 }
 
 .review-content {
   color: #333;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .loader,

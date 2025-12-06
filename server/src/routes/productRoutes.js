@@ -46,6 +46,7 @@ router.get("/:id/reviews", async (req, res) => {
     res.json(
       reviews.map((r) => ({
         id: r._id,
+        title: r.title,
         rating: r.rating,
         content: r.content,
         user: r.userId
@@ -63,13 +64,13 @@ router.get("/:id/reviews", async (req, res) => {
 // 상품 리뷰 작성
 router.post("/:productId/reviews", ensureAuth, async (req, res) => {
   try {
-    const { rating, content } = req.body;
+    const { rating, content, title } = req.body;
     const { productId } = req.params;
 
     const parsedRating = Number(rating);
 
-    if (!parsedRating || !content) {
-      return res.status(400).json({ message: "평점과 내용을 입력해 주세요." });
+    if (!parsedRating || !content || !title) {
+      return res.status(400).json({ message: "평점, 제목, 내용을 입력해 주세요." });
     }
     if (Number.isNaN(parsedRating) || parsedRating < 1 || parsedRating > 5) {
       return res.status(400).json({ message: "평점은 1~5 사이여야 합니다." });
@@ -95,10 +96,12 @@ router.post("/:productId/reviews", ensureAuth, async (req, res) => {
       userId: req.userId,
       rating: parsedRating,
       content,
+      title,
     });
 
     return res.status(201).json({
       id: review._id,
+      title: review.title,
       rating: review.rating,
       content: review.content,
       createdAt: review.createdAt,

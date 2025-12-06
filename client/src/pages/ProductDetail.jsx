@@ -93,7 +93,7 @@ function ProductDetail() {
     }
 
     fetchData();
-  }, [id, sizeOptions]);
+  }, [id]);
 
   const handleAddToCart = async () => {
     setAddStatus(null);
@@ -131,6 +131,17 @@ function ProductDetail() {
     const formatter = new Intl.NumberFormat("ko-KR");
     return formatter.format(price);
   }, [product]);
+
+  const averageRating = useMemo(() => {
+    if (!reviews.length) return null;
+    const sum = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+    return (sum / reviews.length).toFixed(1);
+  }, [reviews]);
+
+  const renderStars = (val) => {
+    const n = Math.round(val || 0);
+    return "★".repeat(n) + "☆".repeat(5 - n);
+  };
 
   if (loading) {
     return (
@@ -270,24 +281,33 @@ function ProductDetail() {
         </div>
       </div>
 
-      <div className="reviews-panel">
-        <div className="reviews-header">
-          <div className="rating-stars-large">☆☆☆☆☆</div>
-          <div className="rating-count">
-            {reviews.length ? `${reviews.length}개의 리뷰가 있습니다.` : "아직 리뷰가 없습니다."}
+        <div className="reviews-panel">
+          <div className="reviews-header">
+            <div className="reviews-header-line">
+              <div className="overall-score">{averageRating || "–"}</div>
+              <div className="overall-stars">
+                {averageRating ? renderStars(averageRating) : "☆☆☆☆☆"}
+              </div>
+            </div>
+            <div className="overall-count">
+              {reviews.length ? `${reviews.length}개의 리뷰 분석 결과입니다.` : "아직 리뷰가 없습니다."}
+            </div>
           </div>
-        </div>
 
         <div className="review-list">
           {reviews.map((r) => (
-            <div key={r.id} className="review-card">
-              <div className="review-meta">
-                <div className="review-stars">{"★★★★★".slice(0, r.rating)}</div>
-                <span className="review-user">
-                  {r.user?.name || "익명"} · {new Date(r.createdAt).toLocaleDateString()}
-                </span>
+            <div key={r.id} className="review-row">
+              <div className="review-left">{r.user?.name || "익명"}</div>
+              <div className="review-body">
+                <div className="review-head">
+                  <span className="review-stars">{renderStars(r.rating)}</span>
+                  {r.title && <strong className="review-title-inline">{r.title}</strong>}
+                  <span className="review-date">
+                    {new Date(r.createdAt).toISOString().slice(0, 10)}
+                  </span>
+                </div>
+                <div className="review-content">{r.content}</div>
               </div>
-              <div className="review-content">{r.content}</div>
             </div>
           ))}
         </div>
