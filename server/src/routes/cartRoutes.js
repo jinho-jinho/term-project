@@ -141,12 +141,14 @@ router.delete("/items/:itemId", async (req, res) => {
       return res.status(404).json({ message: "장바구니가 없습니다." });
     }
 
-    const item = cart.items.id(req.params.itemId);
-    if (!item) {
+    const beforeLen = cart.items.length;
+    cart.items = cart.items.filter(
+      (i) => String(i._id) !== String(req.params.itemId)
+    );
+    if (cart.items.length === beforeLen) {
       return res.status(404).json({ message: "아이템을 찾을 수 없습니다." });
     }
 
-    item.remove();
     await cart.save();
 
     return res.json({ message: "아이템이 삭제되었습니다." });

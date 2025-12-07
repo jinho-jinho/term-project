@@ -54,6 +54,10 @@ function ProductDetail() {
   const [accordionOpen, setAccordionOpen] = useState({});
   const [addStatus, setAddStatus] = useState(null);
   const [adding, setAdding] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cart, setCart] = useState({ items: [] });
+  const [cartLoading, setCartLoading] = useState(false);
+  const [checkingOut, setCheckingOut] = useState(false);
 
   const sizeOptions = useMemo(
     () => Array.from({ length: (285 - 230) / 5 + 1 }, (_, i) => 230 + i * 5),
@@ -118,12 +122,70 @@ function ProductDetail() {
         throw new Error(data.message || "장바구니 담기에 실패했습니다.");
       }
       setAddStatus({ type: "success", message: data.message || "장바구니에 담았습니다." });
+      await fetchCart();
+      setCartOpen(true);
     } catch (err) {
       setAddStatus({ type: "error", message: err.message });
     } finally {
       setAdding(false);
     }
   };
+
+  const fetchCart = async () => {
+    setCartLoading(true);
+    try {
+      const res = await fetch("/api/cart", { credentials: "include" });
+      const data = await res.json();
+      if (res.ok) setCart(data);
+    } catch (err) {
+      console.error("Cart fetch error:", err);
+    } finally {
+      setCartLoading(false);
+    }
+  };
+
+  const updateCartItem = async (itemId, quantity) => {
+    await fetch(`/api/cart/items/${itemId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ quantity }),
+    });
+    await fetchCart();
+  };
+
+  const deleteCartItem = async (itemId) => {
+    await fetch(`/api/cart/items/${itemId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    await fetchCart();
+  };
+
+  const handleCheckout = async () => {
+    setCheckingOut(true);
+    try {
+      const res = await fetch("/api/orders/checkout", {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "결제에 실패했습니다.");
+      }
+      await fetchCart();
+      alert("결제가 완료되었습니다.");
+      setCartOpen(false);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setCheckingOut(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCart();
+  }, []);
 
   const priceText = useMemo(() => {
     if (!product) return "";
@@ -281,7 +343,7 @@ function ProductDetail() {
         </div>
       </div>
 
-        <div className="reviews-panel">
+      <div className="reviews-panel">
           <div className="reviews-header">
             <div className="reviews-header-line">
               <div className="overall-score">{averageRating || "–"}</div>
@@ -312,6 +374,94 @@ function ProductDetail() {
           ))}
         </div>
       </div>
+      {cartOpen && (
+        <div className="cart-drawer" onClick={() => setCartOpen(false)}>
+          <div className="cart-drawer-inner" onClick={(e) => e.stopPropagation()}>
+            <div className="cart-top">
+              <button className="cart-close" onClick={() => setCartOpen(false)}>
+                ×
+              </button>
+              <div className="cart-promo">
+                <div className="cart-promo-icon">🛒</div>
+                <div className="cart-promo-text">회원가입 시 1만원 할인 쿠폰 증정 (마케팅 수신 동의 필수)</div>
+              </div>
+            </div>
+            <div className="cart-items">
+              {cartLoading ? (
+                <div className="cart-loading">불러오는 중...</div>
+              ) : cart.items?.length ? (
+                cart.items.map((item) => (
+                  <div key={item.id || item._id} className="cart-item">
+                    <div className="cart-thumb-block">
+                      <div className="cart-thumb">
+                        {item.images?.[0] ? (
+                          <img src={item.images[0]} alt={item.name} />
+                        ) : (
+                          <div className="placeholder">이미지 없음</div>
+                        )}
+                      </div>
+                      <div className="cart-qty">
+                        <button
+                          onClick={() =>
+                            updateCartItem(item.id || item._id, Math.max(1, (item.quantity || 1) - 1))
+                          }
+                        >
+                          -
+                        </button>
+                        <span>{item.quantity}</span>
+                        <button
+                          onClick={() =>
+                            updateCartItem(item.id || item._id, (item.quantity || 1) + 1)
+                          }
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                    <div className="cart-info">
+                      <div className="cart-header-row">
+                        <div className="cart-name">{item.name}</div>
+                      </div>
+                      <div className="cart-sub">{item.size}</div>
+                      <div className="cart-price-row">
+                        <span className="cart-sale-price">
+                          ₩{(item.price || 0).toLocaleString()}
+                        </span>
+                        {item.discountRate > 0 && (
+                          <span className="cart-base-price">
+                            ₩{Math.round((item.price || 0) / (1 - (item.discountRate || 0) / 100)).toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="cart-actions">
+                      <button className="cart-del" onClick={() => deleteCartItem(item.id || item._id)}>
+                        🗑
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="cart-empty">장바구니가 비어 있습니다.</div>
+              )}
+            </div>
+            <div className="cart-footer">
+              <div className="cart-total">
+                <span>총액</span>
+                <span>
+                  ₩
+                  {cart.items
+                    ?.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0)
+                    .toLocaleString()}
+                </span>
+              </div>
+              <button className="cart-checkout" onClick={handleCheckout} disabled={checkingOut}>
+                {checkingOut ? "결제 중..." : "결제"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
