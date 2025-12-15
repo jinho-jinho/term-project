@@ -8,6 +8,7 @@ import { fileURLToPath } from "url";
 import "./config/db.js";
 import productRoutes from "./routes/productRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // static assets (e.g., /img/... from seed data)
 app.use("/img", express.static(path.join(__dirname, "../public/img")));
+app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
 
 app.use(
   session({
@@ -39,5 +41,6 @@ app.use(
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/admin", adminRoutes);
 
 export default app;
