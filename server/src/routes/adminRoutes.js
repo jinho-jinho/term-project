@@ -12,8 +12,7 @@ const router = express.Router();
 /* 관리자만 접근 가능 (세션 기반) */
 router.use(requireAdmin);
 
-/* 업로드 경로 (절대경로)
-   실제: server/public/img */
+/* 업로드 경로: server/public/img */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const IMG_DIR = path.join(__dirname, "../../public/img");
@@ -38,6 +37,7 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
+/* multer 에러 핸들러 */
 router.use((err, req, res, next) => {
   if (!err) return next();
   console.error("ADMIN ROUTE ERROR:", err);
@@ -46,8 +46,13 @@ router.use((err, req, res, next) => {
 
 /* (1) 상품 목록 조회 */
 router.get("/products", async (req, res) => {
-  const items = await Product.find().sort({ createdAt: -1 });
-  res.json(items);
+  try {
+    const items = await Product.find().sort({ createdAt: -1 });
+    res.json(items);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "상품 목록 조회 실패" });
+  }
 });
 
 /* (2) 상품 등록 (사진 필수) */
@@ -58,6 +63,8 @@ router.post("/products", upload.array("images", 10), async (req, res) => {
       shortDescription = "",
       basePrice,
       discountRate = 0,
+      saleStart,
+      saleEnd,
       categories = "[]",
       materials = "[]",
       availableSizes = "[]",
@@ -98,7 +105,6 @@ router.post("/products", upload.array("images", 10), async (req, res) => {
     }
 
     const imagePaths = req.files.map((f) => `/img/${f.filename}`);
-    const imagesValue = imagePaths.join(",");
 
     const created = await Product.create({
       name: name.trim(),
@@ -108,6 +114,8 @@ router.post("/products", upload.array("images", 10), async (req, res) => {
       materials: Array.isArray(mats) ? mats : [],
       basePrice: Number(basePrice),
       discountRate: Number(discountRate || 0),
+      saleStart: saleStart ? new Date(saleStart) : null,
+      saleEnd: saleEnd ? new Date(saleEnd) : null,
       availableSizes: sizes.map(Number).sort((a, b) => a - b),
     });
 
@@ -120,91 +128,104 @@ router.post("/products", upload.array("images", 10), async (req, res) => {
 
 /* (3) 가용사이즈 변경 */
 router.patch("/products/:id/sizes", async (req, res) => {
-  const { availableSizes } = req.body;
+  try {
+    const { availableSizes } = req.body;
 
-  if (!Array.isArray(availableSizes) || availableSizes.length === 0) {
-    return res
-      .status(400)
-      .json({ message: "availableSizes는 1개 이상이어야 합니다." });
+    if (!Array.isArray(availableSizes) || availableSizes.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "availableSizes는 1개 이상이어야 합니다." });
+    }
+
+    const updated = await Product.findByIdAndUpdate(
+      req.params.id,
+      { availableSizes: availableSizes.map(Number).sort((a, b) => a - b) },
+      { new: true }
+    );
+
+    if (!updated)
+      return res.status(404).json({ message: "상품을 찾을 수 없습니다." });
+    res.json(updated);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "가용사이즈 변경 실패" });
   }
-
-  const updated = await Product.findByIdAndUpdate(
-    req.params.id,
-    { availableSizes: availableSizes.map(Number).sort((a, b) => a - b) },
-    { new: true }
-  );
-
-  if (!updated)
-    return res.status(404).json({ message: "상품을 찾을 수 없습니다." });
-  res.json(updated);
 });
 
-/* (4) 할인정책 변경 */
+/* (4) 할인정책 변경 (할인율 + 세일기간) */
 router.patch("/products/:id/discount", async (req, res) => {
-  const { discountRate } = req.body;
-  const rate = Number(discountRate);
+  try {
+    const { discountRate, saleStart, saleEnd } = req.body;
 
-  if (Number.isNaN(rate) || rate < 0 || rate > 100) {
-    return res
-      .status(400)
-      .json({ message: "discountRate는 0~100 사이여야 합니다." });
+    const p = await Product.findById(req.params.id);
+    if (!p) return res.status(404).json({ message: "상품을 찾을 수 없습니다." });
+
+    if (discountRate !== undefined) {
+      const rate = Number(discountRate);
+      if (Number.isNaN(rate) || rate < 0 || rate > 100) {
+        return res
+          .status(400)
+          .json({ message: "discountRate는 0~100 사이여야 합니다." });
+      }
+      p.discountRate = rate;
+    }
+
+    if (saleStart !== undefined) p.saleStart = saleStart ? new Date(saleStart) : null;
+    if (saleEnd !== undefined) p.saleEnd = saleEnd ? new Date(saleEnd) : null;
+
+    await p.save();
+    res.json(p);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "할인정책 변경 실패" });
   }
-
-  const updated = await Product.findByIdAndUpdate(
-    req.params.id,
-    { discountRate: rate },
-    { new: true }
-  );
-
-  if (!updated)
-    return res.status(404).json({ message: "상품을 찾을 수 없습니다." });
-  res.json(updated);
 });
 
-/* (5) 판매현황 (기간 필터) */
+/* (5) 판매현황 (기간필터 + priceSnapshot*qty) */
 router.get("/sales", async (req, res) => {
-  const { start, end } = req.query;
+  try {
+    const { start, end } = req.query;
 
-  const match = {};
-  if (start || end) {
-    match.paidAt = {};
-    if (start) match.paidAt.$gte = new Date(start);
-    if (end) match.paidAt.$lte = new Date(end);
-  }
+    const match = {};
+    if (start || end) {
+      match.paidAt = {};
+      if (start) match.paidAt.$gte = new Date(start);
+      if (end) {
+        const endDate = new Date(end);
+        endDate.setHours(23, 59, 59, 999);
+        match.paidAt.$lte = endDate;
+      }
+    }
 
-  const rows = await Order.aggregate([
-    { $match: match },
-    { $unwind: "$items" },
-    {
-      $group: {
-        _id: "$items.productId",
-        quantity: { $sum: "$items.quantity" },
-        revenue: {
-          $sum: { $multiply: ["$items.priceSnapshot", "$items.quantity"] },
+    const rows = await Order.aggregate([
+      { $match: match },
+      { $unwind: "$items" },
+      {
+        $group: {
+          _id: "$items.productId",
+          quantity: { $sum: "$items.quantity" },
+          revenue: {
+            $sum: { $multiply: ["$items.priceSnapshot", "$items.quantity"] },
+          },
+          name: { $first: "$items.nameSnapshot" }, // 스냅샷 기반(더 안전)
         },
       },
-    },
-    {
-      $lookup: {
-        from: "products",
-        localField: "_id",
-        foreignField: "_id",
-        as: "product",
+      {
+        $project: {
+          productId: "$_id",
+          name: 1,
+          quantity: 1,
+          revenue: 1,
+        },
       },
-    },
-    { $unwind: { path: "$product", preserveNullAndEmptyArrays: true } },
-    {
-      $project: {
-        productId: "$_id",
-        name: "$product.name",
-        quantity: 1,
-        revenue: 1,
-      },
-    },
-    { $sort: { revenue: -1 } },
-  ]);
+      { $sort: { revenue: -1 } },
+    ]);
 
-  res.json(rows);
+    res.json(rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "판매현황 조회 실패" });
+  }
 });
 
 export default router;

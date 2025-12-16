@@ -6,9 +6,9 @@ import CartDrawer from "./components/CartDrawer";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-
 import ProductList from "./pages/ProductList";
 import ProductDetail from "./pages/ProductDetail";
+
 import MyOrders from "./pages/MyOrders";
 import MyProfile from "./pages/MyProfile";
 import MyOrderRegister from "./pages/MyOrderRegister";

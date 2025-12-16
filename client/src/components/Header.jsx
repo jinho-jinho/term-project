@@ -7,9 +7,10 @@ import logoImg from "../assets/AllbirdsLogo.jpg";
 const HeaderWrap = styled.header`
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 1000;
   background: #fff;
   border-bottom: 1px solid #ececec;
+
 `;
 
 const TopBar = styled.div`
