@@ -57,14 +57,12 @@ export default function AdminPage() {
   );
 }
 
-/* -------------------- (12) 할인정책 변경 -------------------- */
 function DiscountPolicyPanel() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const [products, setProducts] = useState([]);
 
-  // 각 상품별 입력값을 로컬에서 관리 (discountRate만)
-  const [draft, setDraft] = useState({}); // { [productId]: { discountRate } }
+  const [draft, setDraft] = useState({});
   const [savingId, setSavingId] = useState(null);
   const [savedMsg, setSavedMsg] = useState("");
 
@@ -167,7 +165,6 @@ function DiscountPolicyPanel() {
         throw new Error(`사이즈 저장 실패: ${r2.status} ${await r2.text()}`);
       const updated2 = await r2.json();
 
-      // 화면 반영 (최종 응답 기준)
       setProducts((prev) => prev.map((x) => (x._id === id ? updated2 : x)));
       setDraft((prev) => ({
         ...prev,
@@ -310,7 +307,6 @@ function DiscountPolicyPanel() {
   );
 }
 
-/* -------------------- (14) 판매현황 -------------------- */
 function SalesReportPanel() {
   const [start, setStart] = useState(""); // YYYY-MM-DD
   const [end, setEnd] = useState("");
@@ -318,7 +314,6 @@ function SalesReportPanel() {
   const [err, setErr] = useState("");
   const [rows, setRows] = useState([]);
 
-  // 기본값: 최근 30일 (원하면 제거 가능)
   useEffect(() => {
     const now = new Date();
     const s = new Date(now);
@@ -361,7 +356,7 @@ function SalesReportPanel() {
     <div style={styles.panel}>
       <h3 style={styles.h3}>판매현황</h3>
       <p style={styles.desc}>
-        기간을 선택하고 조회하면 제품별 판매수량 / 매출(할인 적용)이 표시됩니다.
+        기간을 선택하고 조회하면 제품별 판매수량 / 매출(할인 적용)이 표시됩니다
       </p>
 
       {err && <div style={styles.err}>{err}</div>}
@@ -445,7 +440,6 @@ function SalesReportPanel() {
   );
 }
 
-/* -------------------- styles -------------------- */
 const styles = {
   page: {
     maxWidth: 1100,
