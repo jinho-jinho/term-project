@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
 const SIZE = [
@@ -338,6 +338,12 @@ const Card = styled.div`
   width: 100%;
   height: 460px;
   z-index: ${(p) => (p.$hovered ? 10 : 1)};
+`;
+
+const CardLink = styled(Link)`
+  display: block;
+  color: inherit;
+  text-decoration: none;
 `;
 
 const CardInner = styled.div`
@@ -984,64 +990,66 @@ function ProductList() {
                     onMouseEnter={() => setHoveredId(p._id)}
                     onMouseLeave={() => setHoveredId(null)}
                   >
-                    <CardInner $hovered={hovered}>
-                      <ImgBox>
-                        <img src={hero} alt={p.name} />
+                    <CardLink to={`/products/${p._id}`}>
+                      <CardInner $hovered={hovered}>
+                        <ImgBox>
+                          <img src={hero} alt={p.name} />
 
-                        {images.length > 1 && (
-                          <ThumbBar>
-                            {images.slice(0, 6).map((src, idx) => (
-                              <Thumb
-                                key={`${p._id}-thumb-${idx}`}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  setHeroById((prev) => ({
-                                    ...prev,
-                                    [p._id]: src,
-                                  }));
-                                }}
-                                aria-label="색상/이미지 선택"
-                              >
-                                <img
-                                  src={src}
-                                  alt={`${p.name} thumb ${idx + 1}`}
-                                />
-                              </Thumb>
-                            ))}
-                          </ThumbBar>
-                        )}
-                      </ImgBox>
-
-                      <CardBody>
-                        <Name>{p.name}</Name>
-                        <Sub>{p.shortDescription || " "}</Sub>
-
-                        <PriceRow>
-                          {rate > 0 && <Discount>{rate}%</Discount>}
-                          <FinalPrice>
-                            ₩{finalPrice.toLocaleString()}
-                          </FinalPrice>
-                          {rate > 0 && (
-                            <Original>₩{base.toLocaleString()}</Original>
+                          {images.length > 1 && (
+                            <ThumbBar>
+                              {images.slice(0, 6).map((src, idx) => (
+                                <Thumb
+                                  key={`${p._id}-thumb-${idx}`}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    setHeroById((prev) => ({
+                                      ...prev,
+                                      [p._id]: src,
+                                    }));
+                                  }}
+                                  aria-label="색상/이미지 선택"
+                                >
+                                  <img
+                                    src={src}
+                                    alt={`${p.name} thumb ${idx + 1}`}
+                                  />
+                                </Thumb>
+                              ))}
+                            </ThumbBar>
                           )}
-                        </PriceRow>
-                      </CardBody>
+                        </ImgBox>
 
-                      {hovered && (
-                        <HoverSizesPanel>
-                          <HoverSizeGrid>
-                            {allSizesForHover.map((s) => (
-                              <HoverSizeCell
-                                key={`${p._id}-hs-${s}`}
-                                $disabled={!available.has(s)}
-                              >
-                                {s}
-                              </HoverSizeCell>
-                            ))}
-                          </HoverSizeGrid>
-                        </HoverSizesPanel>
-                      )}
-                    </CardInner>
+                        <CardBody>
+                          <Name>{p.name}</Name>
+                          <Sub>{p.shortDescription || " "}</Sub>
+
+                          <PriceRow>
+                            {rate > 0 && <Discount>{rate}%</Discount>}
+                            <FinalPrice>
+                              ₩{finalPrice.toLocaleString()}
+                            </FinalPrice>
+                            {rate > 0 && (
+                              <Original>₩{base.toLocaleString()}</Original>
+                            )}
+                          </PriceRow>
+                        </CardBody>
+
+                        {hovered && (
+                          <HoverSizesPanel>
+                            <HoverSizeGrid>
+                              {allSizesForHover.map((s) => (
+                                <HoverSizeCell
+                                  key={`${p._id}-hs-${s}`}
+                                  $disabled={!available.has(s)}
+                                >
+                                  {s}
+                                </HoverSizeCell>
+                              ))}
+                            </HoverSizeGrid>
+                          </HoverSizesPanel>
+                        )}
+                      </CardInner>
+                    </CardLink>
                   </Card>
                 );
               })}

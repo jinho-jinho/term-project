@@ -95,7 +95,7 @@ export default function HeroSection() {
             <HeroTitle>홀리데이 컬렉션</HeroTitle>
             <HeroSub>소중한 사람에게 전하는 마음</HeroSub>
             <BtnRow>
-              <CtaBtn to="/sale/men">남성 세일</CtaBtn>
+              <CtaBtn to="/products">남성 세일</CtaBtn>
               <CtaBtn to="/sale/women">여성 세일</CtaBtn>
             </BtnRow>
           </CtaWrap>
