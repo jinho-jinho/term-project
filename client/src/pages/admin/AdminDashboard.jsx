@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import styled from "styled-components";
 import AdminProductsPage from "./AdminProductsPage";
+import { useNavigate } from "react-router-dom";
 
 const Wrap = styled.main`
   padding: 28px;
@@ -46,6 +47,26 @@ const Card = styled.section`
   padding: 16px;
 `;
 
+const BottomBar = styled.div`
+  margin-top: 32px;
+  text-align: right;
+`;
+
+const LogoutButton = styled.button`
+  font-size: 12px;
+  color: #777;
+  background: transparent;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px 6px;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+`;
+
 export default function AdminDashboard() {
   const tabs = useMemo(
     () => [
@@ -57,6 +78,29 @@ export default function AdminDashboard() {
   );
 
   const [tab, setTab] = useState("products");
+  const [logoutLoading, setLogoutLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    if (logoutLoading) return;
+    setLogoutLoading(true);
+    try {
+      const res = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "로그아웃에 실패했습니다.");
+      }
+      navigate("/login");
+    } catch (err) {
+      console.error("Admin logout failed:", err);
+      alert(err.message || "로그아웃에 실패했습니다.");
+    } finally {
+      setLogoutLoading(false);
+    }
+  };
 
   return (
     <Wrap>
@@ -96,6 +140,12 @@ export default function AdminDashboard() {
           </div>
         </Card>
       )}
+      <BottomBar>
+        <LogoutButton type="button" onClick={handleLogout} disabled={logoutLoading}>
+          {logoutLoading ? "Logging out..." : "Logout"}
+        </LogoutButton>
+      </BottomBar>
+
     </Wrap>
   );
 }

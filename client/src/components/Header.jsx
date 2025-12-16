@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useCart } from "../context/CartContext.jsx";
 import logoImg from "../assets/AllbirdsLogo.jpg";
 
 const HeaderWrap = styled.header`
@@ -233,7 +234,55 @@ function BagIcon() {
 
 export default function Header() {
   const [openKey, setOpenKey] = useState(null);
+  const [me, setMe] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { cartCount, openCart, fetchCart } = useCart();
+
+  useEffect(() => {
+    let active = true;
+    async function fetchMe() {
+      try {
+        const res = await fetch("/api/auth/me", { credentials: "include" });
+        if (!active) {
+          return;
+        }
+        if (!res.ok) {
+          setMe(null);
+          return;
+        }
+        const data = await res.json();
+        if (active) {
+          setMe(data.user || null);
+        }
+      } catch (err) {
+        if (active) {
+          setMe(null);
+        }
+      }
+    }
+    fetchMe();
+    return () => {
+      active = false;
+    };
+  }, [location.pathname]);
+
+  const handleAccountClick = () => {
+    if (!me) {
+      navigate("/login");
+      return;
+    }
+    if (me.role === "admin") {
+      navigate("/admin");
+      return;
+    }
+    navigate("/my/profile");
+  };
+
+  const handleCartClick = () => {
+    fetchCart();
+    openCart();
+  };
 
   const navItems = useMemo(
     () => [
@@ -339,12 +388,14 @@ export default function Header() {
           <IconBtn aria-label="Search">
             <SearchIcon />
           </IconBtn>
-          <IconBtn as={Link} to="/login" aria-label="Account">
+          <IconBtn type="button" onClick={handleAccountClick} aria-label="Account">
             <UserIcon />
           </IconBtn>
-          <IconBtn aria-label="Cart">
+          <IconBtn aria-label="Cart" type="button" onClick={handleCartClick}>
             <BagIcon />
-            <CartBadge>0</CartBadge>
+            {cartCount > 0 && (
+              <CartBadge>{cartCount > 99 ? "99+" : cartCount}</CartBadge>
+            )}
           </IconBtn>
         </IconRow>
       </MainBar>
