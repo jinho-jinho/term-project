@@ -1,26 +1,30 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
-import Login from "./pages/Login";
 import Header from "./components/Header";
-
-function HomeSection() {
-  return (
-    <section className="home-hero">
-      <h1>홈 화면</h1>
-    </section>
-  );
-}
+import Footer from "./components/Footer";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import AdminProducts from "./pages/admin/AdminProducts";
+import AdminProductNew from "./pages/admin/AdminProductNew";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 function App() {
   return (
     <div className="app-shell">
       <Header />
-      <main className="page">
-        <Routes>
-          <Route path="/" element={<HomeSection />} />
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </main>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+
+        {/* Admin */}
+        <Route path="/admin/products" element={<AdminProducts />} />
+        <Route path="/admin/products/new" element={<AdminProductNew />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+
+        {/* fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <Footer />
     </div>
   );
 }
