@@ -121,14 +121,12 @@ function Header() {
         </LogoButton>
 
         <HeaderNav>
-          <NavAnchor to="/">메뉴</NavAnchor>
-          <NavAnchor to="/">메뉴</NavAnchor>
-          <NavAnchor to="/">메뉴</NavAnchor>
+          <NavAnchor to="/">홈</NavAnchor>
+          <NavAnchor to="/my/orders">지난 주문</NavAnchor>
         </HeaderNav>
 
         <HeaderActions>
-          <GhostButton onClick={() => navigate("/")}>버튼</GhostButton>
-          <GhostButton onClick={() => navigate("/")}>버튼</GhostButton>
+          <GhostButton onClick={() => navigate("/my/orders")}>마이페이지</GhostButton>
           <SolidButton onClick={() => navigate("/login")}>로그인</SolidButton>
         </HeaderActions>
       </HeaderInner>

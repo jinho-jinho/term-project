@@ -36,6 +36,12 @@ const reviewSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
+    // 구매 시 선택한 사이즈 (선택값)
+    size: {
+      type: Number,
+      required: false,
+    },
   },
   {
     // createdAt, updatedAt 자동 생성 

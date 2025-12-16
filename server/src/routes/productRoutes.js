@@ -49,6 +49,7 @@ router.get("/:id/reviews", async (req, res) => {
         title: r.title,
         rating: r.rating,
         content: r.content,
+        size: r.size,
         user: r.userId
           ? { id: r.userId._id, name: r.userId.name, email: r.userId.email }
           : null,
@@ -64,13 +65,15 @@ router.get("/:id/reviews", async (req, res) => {
 // 상품 리뷰 작성
 router.post("/:productId/reviews", ensureAuth, async (req, res) => {
   try {
-    const { rating, content, title } = req.body;
+    const { rating, content, title, size } = req.body;
     const { productId } = req.params;
 
     const parsedRating = Number(rating);
+    const parsedSize = Number(size);
+    const sizeProvided = Number.isFinite(parsedSize) && !Number.isNaN(parsedSize);
 
     if (!parsedRating || !content || !title) {
-      return res.status(400).json({ message: "평점, 제목, 내용을 입력해 주세요." });
+      return res.status(400).json({ message: "평점, 제목, 내용을 모두 입력해주세요." });
     }
     if (Number.isNaN(parsedRating) || parsedRating < 1 || parsedRating > 5) {
       return res.status(400).json({ message: "평점은 1~5 사이여야 합니다." });
@@ -84,11 +87,12 @@ router.post("/:productId/reviews", ensureAuth, async (req, res) => {
     const existing = await Review.findOne({
       productId,
       userId: req.userId,
+      ...(sizeProvided ? { size: parsedSize } : {}),
     });
     if (existing) {
       return res
         .status(409)
-        .json({ message: "이미 이 상품에 리뷰를 작성했습니다." });
+        .json({ message: "이미 해당 상품(해당 사이즈)에 리뷰를 작성하셨습니다." });
     }
 
     const review = await Review.create({
@@ -97,6 +101,7 @@ router.post("/:productId/reviews", ensureAuth, async (req, res) => {
       rating: parsedRating,
       content,
       title,
+      size: sizeProvided ? parsedSize : undefined,
     });
 
     return res.status(201).json({
@@ -104,6 +109,7 @@ router.post("/:productId/reviews", ensureAuth, async (req, res) => {
       title: review.title,
       rating: review.rating,
       content: review.content,
+      size: review.size,
       createdAt: review.createdAt,
     });
   } catch (err) {
