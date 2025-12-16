@@ -74,6 +74,12 @@ const productSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+
+  // 누적 판매량 (판매순 정렬용)
+  totalSold: {
+    type: Number,
+    default: 0,
+  },
 });
 
 export default mongoose.model("Product", productSchema);

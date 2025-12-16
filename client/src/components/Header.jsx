@@ -7,7 +7,7 @@ const SiteHeader = styled.header`
   border-bottom: 1px solid #e5e5e5;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 1000;
 `;
 
 const HeaderInner = styled.div`
