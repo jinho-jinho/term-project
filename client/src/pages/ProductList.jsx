@@ -664,7 +664,7 @@ function ProductList() {
   useEffect(() => {
     if (sortOption !== "sales") return;
 
-    fetch("/admin/sales", { credentials: "include" })
+    fetch("/api/admin/sales", { credentials: "include" })
       .then(async (res) => {
         if (!res.ok) {
           const text = await res.text();
@@ -675,7 +675,7 @@ function ProductList() {
       .then((rows) => {
         const map = {};
         (Array.isArray(rows) ? rows : []).forEach((r) => {
-          map[r.productId] = r.quantity || 0;
+          map[String(r.productId)] = Number(r.quantity || 0);
         });
         setSoldMap(map);
       })
@@ -778,8 +778,13 @@ function ProductList() {
       if (sortOption === "highPrice") return priceB - priceA;
       if (sortOption === "newest")
         return new Date(b.createdAt) - new Date(a.createdAt);
-      if (sortOption === "sales")
-        return (soldMap[b._id] || 0) - (soldMap[a._id] || 0);
+      if (sortOption === "sales") {
+        const sa = soldMap[String(a._id)] || 0;
+        const sb = soldMap[String(b._id)] || 0;
+
+        if (sb !== sa) return sb - sa;
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      }
 
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
