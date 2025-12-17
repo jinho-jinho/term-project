@@ -658,7 +658,7 @@ function ProductList() {
   useEffect(() => {
     if (sortOption !== "sales") return;
 
-    fetch("/api/admin/sales", { credentials: "include" })
+    fetch("/api/products/sales")
       .then(async (res) => {
         if (!res.ok) {
           const text = await res.text();
